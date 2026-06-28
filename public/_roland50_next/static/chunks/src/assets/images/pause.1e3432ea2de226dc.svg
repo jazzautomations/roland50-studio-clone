@@ -1,0 +1,21 @@
+<svg
+    className='svg'
+    xmlns='http://www.w3.org/2000/svg'
+    viewBox='0 0 24.92 29.46'
+>
+
+    <rect
+    fill='black'
+    x='14.53'
+    y='1.45'
+    width='5.15'
+    height='25.01'
+    />
+    <rect
+    fill='black'
+    x='1.88'
+    y='1.45'
+    width='5.15'
+    height='25.01'
+    />
+</svg>
