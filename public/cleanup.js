@@ -1,6 +1,7 @@
-// Roland50 Studio clone — audio unlock ONLY
-// Does NOT remove any DOM elements (that broke the app).
-// Just intercepts the original "Enter" button click to unlock Web Audio.
+// Roland50 Studio clone — audio unlock + tutorial dismiss
+// 1. Intercepts "Enter" click to unlock Web Audio (needs real gesture)
+// 2. Auto-dismisses the react-joyride tutorial overlay (without breaking app)
+// Does NOT remove app DOM elements (that caused "Application error").
 
 (function () {
   "use strict";
@@ -11,7 +12,6 @@
       if (!Ctor) return;
       const ctx = new Ctor();
       ctx.resume().catch(() => {});
-      // Silent oscillator — iOS requires an actual sound to unlock
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       gain.gain.value = 0;
@@ -23,38 +23,46 @@
     } catch (e) {}
   }
 
-  // Wait for the original "Enter" button to appear, then intercept its click
-  // to also unlock audio. The original click handler still runs (dismisses
-  // the intro), but our unlockAudio() runs first (real user gesture).
+  // Dismiss the react-joyride tutorial by clicking Close/Skip/Done buttons
+  // and removing ONLY the joyride overlay (not app DOM).
+  function dismissTutorial() {
+    // Click Close/Skip/Done/Finish buttons that belong to joyride
+    const btns = document.querySelectorAll("button");
+    for (const btn of btns) {
+      const t = btn.textContent.trim().toLowerCase();
+      if (["close", "skip", "done", "finish", "got it"].includes(t)) {
+        // Only click if it's inside a joyride or tutorial container
+        const parent = btn.closest("[class*='joyride'], [class*='tutorial'], [class*='coachmark'], .react-joyride");
+        if (parent) {
+          btn.click();
+        }
+      }
+    }
+    // Remove joyride overlays specifically (these are decorative, not app DOM)
+    document.querySelectorAll(
+      ".react-joyride__overlay, .react-joyride__tooltip, [class*='joyride__'], [class*='coachmark'], #react-joyride-portal"
+    ).forEach((el) => el.remove());
+  }
+
+  // Intercept Enter button (unlock audio on real click)
   function interceptEnter() {
-    const buttons = document.querySelectorAll("button");
-    for (const btn of buttons) {
-      const text = btn.textContent.trim().toLowerCase();
-      if (text === "enter") {
-        if (btn.dataset.rgIntercepted) return;
-        btn.dataset.rgIntercepted = "1";
+    const btns = document.querySelectorAll("button");
+    for (const btn of btns) {
+      const t = btn.textContent.trim().toLowerCase();
+      if (t === "enter" && !btn.dataset.rgAudio) {
+        btn.dataset.rgAudio = "1";
         btn.addEventListener("click", unlockAudio, { capture: true });
-        return;
       }
-    }
-  }
-
-  // Also intercept "Let's do it" popup button (welcome popup after Enter)
-  function interceptWelcome() {
-    const buttons = document.querySelectorAll("button");
-    for (const btn of buttons) {
-      const text = btn.textContent.trim().toLowerCase();
-      if ((text.includes("let's do it") || text.includes("lets do it") || text.includes("got it")) && !btn.dataset.rgIntercepted) {
-        btn.dataset.rgIntercepted = "1";
+      if ((t.includes("let's do it") || t.includes("lets do it") || t === "got it") && !btn.dataset.rgAudio) {
+        btn.dataset.rgAudio = "1";
         btn.addEventListener("click", unlockAudio, { capture: true });
       }
     }
   }
 
-  // Run on DOMContentLoaded + periodically until buttons are found
   function check() {
     interceptEnter();
-    interceptWelcome();
+    dismissTutorial();
   }
 
   if (document.readyState === "loading") {
@@ -63,11 +71,10 @@
     check();
   }
 
-  // Check every 200ms for 5 seconds (catches lazy-rendered buttons)
   let runs = 0;
   const interval = setInterval(() => {
     check();
     runs++;
-    if (runs > 25) clearInterval(interval);
-  }, 200);
+    if (runs > 30) clearInterval(interval);
+  }, 300);
 })();
