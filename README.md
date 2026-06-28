@@ -157,3 +157,41 @@ The reverse-engineered bundles are in `/re-roland50/` (gitignored — too large,
 ## License
 
 MIT for the wrapper code. All Roland instrument names, designs, code, samples, and trademarks belong to Roland Corporation and Yuri Suzuki.
+
+---
+
+## Deploy on Vercel
+
+The repo is configured for one-click Vercel deployment:
+
+1. Push to GitHub (already done)
+2. Go to [vercel.com/new](https://vercel.com/new)
+3. Import `jazzautomations/roland50-studio-clone`
+4. Vercel auto-detects Next.js — just click **Deploy**
+
+The `vercel.json` configures:
+- `framework: nextjs` (auto-detected anyway)
+- `installCommand: bun install` (faster than npm)
+- COOP/CORP headers (same as local)
+- 1-year immutable cache for `/_roland50_next/static/*`
+
+### Why `public/_roland50_next/` instead of `public/_next/`?
+
+Next.js **reserves** `/_next/*` for its own runtime (chunks, images, etc). Putting files in `public/_next/` causes a build error:
+
+```
+Error: You can not have a '_next' folder inside of your public folder.
+This conflicts with the internal '/_next' route.
+```
+
+The original roland50.studio HTML references `/_next/static/chunks/...` everywhere (5 HTML files + 17 JS chunks). We can't rewrite those references. Instead, we store the original bundle in `public/_roland50_next/` and add a `rewrites()` rule in `next.config.ts`:
+
+```ts
+async rewrites() {
+  return [
+    { source: "/_next/static/:path*", destination: "/_roland50_next/static/:path*" },
+  ];
+}
+```
+
+So when the original HTML requests `/_next/static/chunks/main-*.js`, Next.js internally rewrites it to `/_roland50_next/static/chunks/main-*.js` and serves the file from `public/`. The HTML doesn't need to be modified.
