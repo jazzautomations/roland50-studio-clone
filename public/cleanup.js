@@ -1,7 +1,7 @@
-// Roland50 Studio clone — audio unlock ONLY.
-// Does NOT touch any DOM elements. Does NOT click any buttons except
-// intercepting the original Enter/Let's-do-it to unlock Web Audio.
-// (Previous versions that removed DOM caused "Application error".)
+// Roland50 Studio clone — audio unlock + tutorial auto-skip
+// 1. Intercepts Enter/Let's do it clicks to unlock Web Audio (gesture)
+// 2. Auto-clicks "Next" buttons inside react-joyride tooltips (tutorial)
+//    and the final "X" close button. NEVER clicks app buttons.
 
 (function () {
   "use strict";
@@ -23,6 +23,7 @@
     } catch (e) {}
   }
 
+  // Intercept Enter / Let's do it / Got it to also unlock audio
   function interceptButtons() {
     const btns = document.querySelectorAll("button");
     for (const btn of btns) {
@@ -35,8 +36,30 @@
     }
   }
 
+  // Auto-skip the react-joyride tutorial: click "Next" and "Back" and "Close"
+  // ONLY when they're inside a joyride tooltip.
+  function skipTutorial() {
+    // joyride tooltips live inside [class*="react-joyride"] or [aria-live]
+    const joyride = document.querySelector(
+      ".react-joyride__tooltip, [class*='react-joyride'], [data-component='joyride'], [aria-live='polite']"
+    );
+    if (!joyride) return;
+    // Find buttons inside the joyride tooltip
+    const joyrideBtns = joyride.querySelectorAll("button");
+    for (const btn of joyrideBtns) {
+      const t = btn.textContent.trim().toLowerCase();
+      const ariaLabel = (btn.getAttribute("aria-label") || "").toLowerCase();
+      // Click Next to advance, or Close/X/Last to finish
+      if (t === "next" || t === "skip" || t === "close" || t === "done" || t === "last" || ariaLabel === "close" || btn.querySelector("svg")) {
+        btn.click();
+        return;
+      }
+    }
+  }
+
   function check() {
     interceptButtons();
+    skipTutorial();
   }
 
   if (document.readyState === "loading") {
@@ -49,6 +72,6 @@
   const interval = setInterval(() => {
     check();
     runs++;
-    if (runs > 30) clearInterval(interval);
-  }, 300);
+    if (runs > 40) clearInterval(interval);
+  }, 400);
 })();
