@@ -1,7 +1,7 @@
-// Roland50 Studio clone — audio unlock + tutorial dismiss
-// 1. Intercepts "Enter" click to unlock Web Audio (needs real gesture)
-// 2. Auto-dismisses the react-joyride tutorial overlay (without breaking app)
-// Does NOT remove app DOM elements (that caused "Application error").
+// Roland50 Studio clone — audio unlock ONLY.
+// Does NOT touch any DOM elements. Does NOT click any buttons except
+// intercepting the original Enter/Let's-do-it to unlock Web Audio.
+// (Previous versions that removed DOM caused "Application error".)
 
 (function () {
   "use strict";
@@ -23,37 +23,12 @@
     } catch (e) {}
   }
 
-  // Dismiss the react-joyride tutorial by clicking Close/Skip/Done buttons
-  // and removing ONLY the joyride overlay (not app DOM).
-  function dismissTutorial() {
-    // Click Close/Skip/Done/Finish buttons that belong to joyride
+  function interceptButtons() {
     const btns = document.querySelectorAll("button");
     for (const btn of btns) {
+      if (btn.dataset.rgAudio) continue;
       const t = btn.textContent.trim().toLowerCase();
-      if (["close", "skip", "done", "finish", "got it"].includes(t)) {
-        // Only click if it's inside a joyride or tutorial container
-        const parent = btn.closest("[class*='joyride'], [class*='tutorial'], [class*='coachmark'], .react-joyride");
-        if (parent) {
-          btn.click();
-        }
-      }
-    }
-    // Remove joyride overlays specifically (these are decorative, not app DOM)
-    document.querySelectorAll(
-      ".react-joyride__overlay, .react-joyride__tooltip, [class*='joyride__'], [class*='coachmark'], #react-joyride-portal"
-    ).forEach((el) => el.remove());
-  }
-
-  // Intercept Enter button (unlock audio on real click)
-  function interceptEnter() {
-    const btns = document.querySelectorAll("button");
-    for (const btn of btns) {
-      const t = btn.textContent.trim().toLowerCase();
-      if (t === "enter" && !btn.dataset.rgAudio) {
-        btn.dataset.rgAudio = "1";
-        btn.addEventListener("click", unlockAudio, { capture: true });
-      }
-      if ((t.includes("let's do it") || t.includes("lets do it") || t === "got it") && !btn.dataset.rgAudio) {
+      if (t === "enter" || t.includes("let's do it") || t.includes("lets do it") || t === "got it") {
         btn.dataset.rgAudio = "1";
         btn.addEventListener("click", unlockAudio, { capture: true });
       }
@@ -61,8 +36,7 @@
   }
 
   function check() {
-    interceptEnter();
-    dismissTutorial();
+    interceptButtons();
   }
 
   if (document.readyState === "loading") {
