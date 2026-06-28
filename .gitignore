@@ -1,0 +1,74 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+local-*
+.claude
+.z-ai-config
+*.log
+dev.log
+dev.out.log
+test
+prompt
+
+server.log
+# Skills directory
+/skills/
+# Rhythmic Geometry clone — project-specific
+/re/                    # reverse-engineered bundles (large, not needed in repo)
+/upload/                # user-uploaded screenshots
+/download/              # generated exports
+/scripts/               # local generation scripts
+/.zscripts/             # sandbox dev scripts
+/mini-services/         # not used in this clone
+/worklog.md             # multi-agent worklog
+/bun.lock               # keep or ignore — using package-lock convention
+.env
+
+# Roland50 clone — project-specific
+/re-roland50/              # reverse-engineered bundles
+/upload/                   # user screenshots
+/download/                 # generated exports
+/scripts/                  # local scripts
+/.zscripts/                # sandbox dev scripts
+/mini-services/            # not used
+/worklog.md                # multi-agent worklog
+/skills/                   # skill files
